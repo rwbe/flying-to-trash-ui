@@ -1,13 +1,13 @@
+import { useState, useRef, useCallback } from 'react';
+import type { ReactElement } from 'react';
+import { motion, AnimatePresence, useAnimate } from 'framer-motion';
 import {
   GojoAvatar,
-  KilluaAvatar,
   LuffyAvatar,
-  MikasaAvatar,
   NarutoAvatar,
+  KilluaAvatar,
+  MikasaAvatar,
 } from '@/components/CharacterAvatars';
-import { AnimatePresence, motion, useAnimate } from 'framer-motion';
-import type { ReactElement } from 'react';
-import { useCallback, useRef, useState } from 'react';
 
 interface Membro {
   id: number;
@@ -60,7 +60,7 @@ const MEMBROS_INICIAIS: Membro[] = [
     cor: '#FB923C',
     corSecundaria: '#7C2D12',
     emoji: '🍥',
-    simbolo: '🌀',
+    simbolo: 'uzumaki',
     Avatar: NarutoAvatar,
   },
   {
@@ -97,6 +97,73 @@ const STATUS_CONFIG = {
   ocupado: { cor: '#F87171', label: 'Ocupado', pulso: false },
 };
 
+/* ────────────────────────────────────────────────
+   Espiral Uzumaki — símbolo do clã
+──────────────────────────────────────────────── */
+function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number }) {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      width={tamanho}
+      height={tamanho}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M50 50
+           m0,-36
+           a36,36 0 1,1 -0.01,0
+           m0.01,-8
+           a44,44 0 1,0 0.01,0
+           m-0.01,16
+           a28,28 0 1,1 -0.01,0
+           m0.01,-8
+           a20,20 0 1,0 0.01,0
+           m-0.01,8
+           a12,12 0 1,1 -0.01,0
+           m0.01,0 l0,1"
+        stroke={cor}
+        strokeWidth="5.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   Marca d'água do personagem no card
+──────────────────────────────────────────────── */
+function CardWatermark({ simbolo, cor }: { simbolo: string; cor: string }) {
+  if (simbolo === 'uzumaki') {
+    return (
+      <div
+        className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none select-none"
+        style={{ opacity: 0.055 }}
+      >
+        <UzumakiSpiral cor={cor} tamanho={68} />
+      </div>
+    );
+  }
+  return (
+    <div
+      className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none select-none font-black leading-none"
+      style={{
+        fontSize: '4.5rem',
+        color: cor,
+        opacity: 0.045,
+        fontFamily: 'system-ui, sans-serif',
+        userSelect: 'none',
+      }}
+    >
+      {simbolo}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   Lixeira animada
+──────────────────────────────────────────────── */
 function LixeiraAnimada({
   isOpen,
   count,
@@ -109,7 +176,7 @@ function LixeiraAnimada({
   return (
     <div ref={innerRef} className="flex flex-col items-center">
       <motion.div
-        className="relative w-14 h-14"
+        className="relative w-10 h-10"
         animate={isOpen ? { scale: [1, 1.15, 1] } : { scale: 1 }}
         transition={{ duration: 0.35 }}
       >
@@ -121,10 +188,11 @@ function LixeiraAnimada({
               exit={{ scale: 0.5, opacity: 0 }}
               transition={{ duration: 0.5 }}
               className="absolute inset-0 rounded-full bg-red-500"
-              style={{ filter: 'blur(12px)' }}
+              style={{ filter: 'blur(10px)' }}
             />
           )}
         </AnimatePresence>
+
         <svg viewBox="0 0 56 56" className="w-full h-full relative z-10" fill="none">
           <motion.rect
             x="10"
@@ -179,19 +247,20 @@ function LixeiraAnimada({
             />
           </motion.g>
         </svg>
+
         <AnimatePresence>
           {count > 0 && (
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
-              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center z-20 shadow-lg"
+              className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center z-20 shadow-lg"
             >
               <motion.span
                 key={count}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="text-[10px] font-black text-white"
+                className="text-[9px] font-black text-white"
               >
                 {count}
               </motion.span>
@@ -203,23 +272,108 @@ function LixeiraAnimada({
   );
 }
 
-function CardWatermark({ simbolo, cor }: { simbolo: string; cor: string }) {
+/* ────────────────────────────────────────────────
+   Botão Restaurar — ícone ao lado da lixeira
+──────────────────────────────────────────────── */
+function BotaoRestaurar({
+  removidos,
+  onRestaurar,
+}: {
+  removidos: Membro[];
+  onRestaurar: (id: number) => void;
+}) {
+  const [spinning, setSpinning] = useState(false);
+  const count = removidos.length;
+  const ultimo = removidos[removidos.length - 1];
+  const disabled = count === 0;
+  const cor = ultimo?.cor ?? 'rgba(255,255,255,0.15)';
+
+  const handle = () => {
+    if (disabled || spinning || !ultimo) return;
+    setSpinning(true);
+    onRestaurar(ultimo.id);
+    setTimeout(() => setSpinning(false), 600);
+  };
+
   return (
-    <div
-      className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none select-none font-black leading-none"
-      style={{
-        fontSize: '4.5rem',
-        color: cor,
-        opacity: 0.045,
-        fontFamily: 'system-ui, sans-serif',
-        userSelect: 'none',
-      }}
-    >
-      {simbolo}
+    <div className="relative flex items-center justify-center">
+      {/* Pulse ring when active */}
+      <AnimatePresence>
+        {!disabled && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: [0.3, 0.75, 0.3], scale: [0.9, 1.05, 0.9] }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute w-10 h-10 rounded-full pointer-events-none"
+            style={{ border: `1.5px solid ${cor}55` }}
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.button
+        onClick={handle}
+        disabled={disabled}
+        whileHover={disabled ? {} : { scale: 1.12 }}
+        whileTap={disabled ? {} : { scale: 0.82 }}
+        className="relative w-9 h-9 flex items-center justify-center rounded-xl transition-colors duration-200"
+        style={{
+          backgroundColor: disabled ? 'rgba(255,255,255,0.03)' : `${cor}12`,
+          border: `1px solid ${disabled ? 'rgba(255,255,255,0.06)' : cor + '35'}`,
+          cursor: disabled ? 'default' : 'pointer',
+          opacity: disabled ? 0.28 : 1,
+        }}
+        title={disabled ? 'Nada para restaurar' : `Restaurar ${ultimo?.nome}`}
+      >
+        <motion.div
+          animate={spinning ? { rotate: -360 } : { rotate: 0 }}
+          transition={spinning ? { duration: 0.52, ease: 'easeInOut' } : {}}
+          style={{ color: disabled ? 'rgba(255,255,255,0.2)' : cor }}
+        >
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            className="w-[17px] h-[17px]"
+            stroke="currentColor"
+            strokeWidth={1.85}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 10a7 7 0 1 0 1.5-4.3" />
+            <path d="M3 5v5h5" />
+          </svg>
+        </motion.div>
+      </motion.button>
+
+      {/* Count badge */}
+      <AnimatePresence>
+        {count > 0 && (
+          <motion.div
+            key={count}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full z-10 shadow-lg"
+            style={{
+              backgroundColor: cor,
+              width: '17px',
+              height: '17px',
+              fontSize: '9px',
+              fontWeight: 900,
+              color: '#0e0e10',
+            }}
+          >
+            {count}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
+/* ────────────────────────────────────────────────
+   Avatar com anel giratório + ilustração SVG
+──────────────────────────────────────────────── */
 function AvatarCard({ membro }: { membro: Membro }) {
   const { Avatar } = membro;
   return (
@@ -255,6 +409,9 @@ function AvatarCard({ membro }: { membro: Membro }) {
   );
 }
 
+/* ────────────────────────────────────────────────
+   Partículas de trilha ao deletar
+──────────────────────────────────────────────── */
 function TrailParticles({ active, cor }: { active: boolean; cor: string }) {
   return (
     <AnimatePresence>
@@ -274,6 +431,9 @@ function TrailParticles({ active, cor }: { active: boolean; cor: string }) {
   );
 }
 
+/* ────────────────────────────────────────────────
+   Linha de membro ativo com fly-to-trash
+──────────────────────────────────────────────── */
 function MembroLinha({
   membro,
   trashRef,
@@ -291,11 +451,14 @@ function MembroLinha({
     if (deleting || !trashRef.current || !rowRef.current) return;
     setDeleting(true);
     setShowTrail(true);
+
     const rowRect = rowRef.current.getBoundingClientRect();
     const trashRect = trashRef.current.getBoundingClientRect();
     const dx = trashRect.left + trashRect.width / 2 - (rowRect.left + rowRect.width / 2);
     const dy = trashRect.top + trashRect.height / 2 - (rowRect.top + rowRect.height / 2);
+
     setTimeout(() => setShowTrail(false), 450);
+
     await animate(
       rowRef.current,
       {
@@ -306,8 +469,13 @@ function MembroLinha({
         opacity: [1, 1, 0.65, 0],
         filter: ['blur(0px)', 'blur(0px)', 'blur(1px)', 'blur(8px)'],
       },
-      { duration: 0.62, ease: [0.25, 0.46, 0.45, 0.94], times: [0, 0.2, 0.65, 1] }
+      {
+        duration: 0.62,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        times: [0, 0.2, 0.65, 1],
+      }
     );
+
     onRemover(membro.id);
   }, [deleting, trashRef, rowRef, animate, onRemover, membro.id]);
 
@@ -315,23 +483,34 @@ function MembroLinha({
     <motion.div layout ref={rowRef} className="relative">
       <TrailParticles active={showTrail} cor={membro.cor} />
       <motion.div
-        className="group flex items-center gap-4 px-5 py-4 rounded-2xl border border-white/[0.07] cursor-default relative overflow-hidden"
-        style={{
-          background:
-            'linear-gradient(135deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.012) 100%)',
-        }}
+        className={`group flex items-center gap-4 px-5 py-4 rounded-2xl border transition-colors duration-200 cursor-default relative overflow-hidden ${
+          deleting ? 'border-red-500/20' : 'border-white/[0.07]'
+        }`}
+        style={
+          deleting
+            ? { background: 'rgba(239,68,68,0.04)' }
+            : {
+                background:
+                  'linear-gradient(135deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.012) 100%)',
+              }
+        }
         whileHover={{
           background: `linear-gradient(135deg, ${membro.cor}0d 0%, rgba(255,255,255,0.018) 100%)`,
           borderColor: `${membro.cor}35`,
         }}
         transition={{ duration: 0.2 }}
       >
+        {/* Marca d'água do personagem */}
         <CardWatermark simbolo={membro.simbolo} cor={membro.cor} />
+
+        {/* Barra lateral colorida */}
         <div
           className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full opacity-75"
           style={{ backgroundColor: membro.cor }}
         />
+
         <AvatarCard membro={membro} />
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-sm font-bold text-white/92 truncate">{membro.nome}</span>
@@ -358,12 +537,15 @@ function MembroLinha({
           </div>
           <p className="text-[9px] text-white/22 italic mt-0.5">{membro.personagem}</p>
         </div>
+
+        {/* Botão deletar — lixeira */}
         <motion.button
           onClick={handleRemover}
           disabled={deleting}
           whileHover={{ scale: 1.15, rotate: -8 }}
           whileTap={{ scale: 0.82 }}
           className="relative flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl text-white/18 hover:text-red-400 hover:bg-red-500/12 transition-all duration-150 disabled:opacity-0"
+          title="Remover membro"
         >
           <svg
             viewBox="0 0 20 20"
@@ -383,6 +565,9 @@ function MembroLinha({
   );
 }
 
+/* ────────────────────────────────────────────────
+   Componente principal
+──────────────────────────────────────────────── */
 export default function EquipeDeElite() {
   const [membros, setMembros] = useState<Membro[]>(MEMBROS_INICIAIS);
   const [removidos, setRemovidos] = useState<Membro[]>([]);
@@ -407,13 +592,17 @@ export default function EquipeDeElite() {
     if (!membro) return;
     setRemovidos(prev => prev.filter(m => m.id !== id));
     setMembros(prev => {
-      const order = MEMBROS_INICIAIS.map(m => m.id);
-      return [...prev, membro].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+      const originalOrder = MEMBROS_INICIAIS.map(m => m.id);
+      const newList = [...prev, membro];
+      return newList.sort((a, b) => originalOrder.indexOf(a.id) - originalOrder.indexOf(b.id));
     });
   }, []);
 
+  const totalRemovidos = removidos.length;
+
   return (
     <div className="min-h-screen bg-[#0e0e10] flex items-center justify-center p-6">
+      {/* Grain texture overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.022]"
         style={{
@@ -421,7 +610,9 @@ export default function EquipeDeElite() {
           backgroundSize: '200px 200px',
         }}
       />
+
       <div className="w-full max-w-lg relative z-10">
+        {/* Cabeçalho */}
         <div className="flex items-start justify-between mb-7">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
@@ -443,8 +634,15 @@ export default function EquipeDeElite() {
               {membros.length} membro{membros.length !== 1 ? 's' : ''} ativos · Operações Especiais
             </p>
           </div>
-          <LixeiraAnimada isOpen={trashOpen} count={removidos.length} innerRef={trashRef} />
+
+          {/* Ações: Restaurar + Lixeira */}
+          <div className="flex items-center gap-2.5">
+            <BotaoRestaurar removidos={removidos} onRestaurar={handleRestaurar} />
+            <LixeiraAnimada isOpen={trashOpen} count={totalRemovidos} innerRef={trashRef} />
+          </div>
         </div>
+
+        {/* Lista de membros ativos */}
         <div className="space-y-2.5">
           <AnimatePresence mode="popLayout">
             {membros.length === 0 ? (
@@ -464,7 +662,7 @@ export default function EquipeDeElite() {
                   🗑️
                 </motion.div>
                 <p className="text-white/45 font-semibold text-sm mb-1">Todos removidos</p>
-                <p className="text-white/22 text-xs">Restaure os membros abaixo</p>
+                <p className="text-white/22 text-xs">Use o botão ↩ para restaurar</p>
               </motion.div>
             ) : (
               membros.map(m => (
@@ -474,69 +672,32 @@ export default function EquipeDeElite() {
           </AnimatePresence>
         </div>
 
-        {/* Seção de removidos (a ser substituída no próximo commit) */}
-        <AnimatePresence>
-          {removidos.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 14 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-              className="mt-4"
-            >
-              <div className="flex items-center gap-2 mb-2.5">
-                <div className="h-px flex-1 bg-white/[0.06]" />
-                <span className="text-[9px] font-semibold text-white/25 uppercase tracking-widest">
-                  Removidos · {removidos.length}
-                </span>
-                <div className="h-px flex-1 bg-white/[0.06]" />
-              </div>
-              <div className="space-y-1.5">
-                {removidos.map(m => (
+        {/* Rodapé */}
+        {membros.length > 0 && (
+          <div className="mt-6 pt-4 border-t border-white/[0.055] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-1">
+                {['#818CF8', '#F87171', '#FB923C', '#38BDF8', '#A78BFA'].map((cor, i) => (
                   <div
-                    key={m.id}
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl border"
-                    style={{
-                      borderColor: `${m.cor}25`,
-                      background: `linear-gradient(135deg, ${m.cor}08 0%, rgba(255,255,255,0.015) 100%)`,
-                    }}
-                  >
-                    <div
-                      className="w-8 h-8 rounded-xl overflow-hidden border border-white/10 flex-shrink-0"
-                      style={{ background: m.corSecundaria }}
-                    >
-                      <m.Avatar />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-white/55 truncate line-through decoration-white/20">
-                        {m.nome}
-                      </p>
-                      <p className="text-[9px] text-white/28 truncate">{m.funcao}</p>
-                    </div>
-                    <button
-                      onClick={() => handleRestaurar(m.id)}
-                      className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-lg"
-                      style={{ color: m.cor, backgroundColor: m.cor + '18' }}
-                    >
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        className="w-4 h-4"
-                        stroke="currentColor"
-                        strokeWidth={1.7}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M3 10a7 7 0 1 0 1.5-4.3" />
-                        <path d="M3 5v5h5" />
-                      </svg>
-                    </button>
-                  </div>
+                    key={i}
+                    className="w-3 h-3 rounded-full border border-[#0e0e10]"
+                    style={{ backgroundColor: cor + '88' }}
+                  />
                 ))}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <span className="text-[10px] text-white/28">
+                © {new Date().getFullYear()} · Equipe de Elite
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[9px] text-white/16">
+              <span>React</span>
+              <span className="text-white/10">·</span>
+              <span>Framer Motion</span>
+              <span className="text-white/10">·</span>
+              <span>Tailwind</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
