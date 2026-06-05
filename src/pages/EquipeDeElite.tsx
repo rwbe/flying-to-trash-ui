@@ -8,7 +8,7 @@ import {
 import { playRestoreChime, playRestoreSound, playTrashSound } from '@/lib/sounds';
 import { AnimatePresence, motion, useAnimate } from 'framer-motion';
 import type { ReactElement } from 'react';
-import { useCallback, useRef, useState } from 'react';
+import { forwardRef, useCallback, useRef, useState } from 'react';
 
 interface Membro {
   id: number;
@@ -390,7 +390,6 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
       transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0.2 }}
       className="relative mt-5"
     >
-      {/* Subtle particle burst on click — neutral white */}
       <AnimatePresence>
         {burst &&
           [...Array(6)].map((_, i) => (
@@ -425,7 +424,6 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
           color: 'rgba(255,255,255,0.65)',
         }}
       >
-        {/* Shimmer sweep */}
         <motion.div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -437,7 +435,6 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
         />
 
         <span className="relative flex items-center justify-center gap-2.5">
-          {/* SVG restore-all icon */}
           <svg
             viewBox="0 0 18 18"
             fill="none"
@@ -534,20 +531,31 @@ function TrailParticles({ active, cor }: { active: boolean; cor: string }) {
 /* ────────────────────────────────────────────────
    Linha de membro ativo com fly-to-trash
 ──────────────────────────────────────────────── */
-function MembroLinha({
-  membro,
-  trashRef,
-  onRemover,
-  justRestored = false,
-}: {
-  membro: Membro;
-  trashRef: React.RefObject<HTMLDivElement>;
-  onRemover: (id: number) => void;
-  justRestored?: boolean;
-}) {
+const MembroLinha = forwardRef<
+  HTMLDivElement,
+  {
+    membro: Membro;
+    trashRef: React.RefObject<HTMLDivElement>;
+    onRemover: (id: number) => void;
+    justRestored?: boolean;
+  }
+>(({ membro, trashRef, onRemover, justRestored = false }, ref) => {
   const [rowRef, animate] = useAnimate<HTMLDivElement>();
   const [deleting, setDeleting] = useState(false);
   const [showTrail, setShowTrail] = useState(false);
+
+  // Função para combinar as refs corretamente
+  const setRefs = useCallback(
+    (element: HTMLDivElement | null) => {
+      rowRef.current = element;
+      if (typeof ref === 'function') {
+        ref(element);
+      } else if (ref) {
+        ref.current = element;
+      }
+    },
+    [ref, rowRef]
+  );
 
   const handleRemover = useCallback(async () => {
     if (deleting || !trashRef.current || !rowRef.current) return;
@@ -584,16 +592,12 @@ function MembroLinha({
 
   return (
     <motion.div
-      layout
-      ref={rowRef}
+      layout={!deleting} // desativa layout durante deleção para evitar conflitos
+      ref={setRefs}
       className="relative"
-      {...(justRestored
-        ? {
-            initial: { x: 64, y: -18, scale: 0.52, opacity: 0, rotate: 13 },
-            animate: { x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 },
-            transition: { type: 'spring', stiffness: 390, damping: 28 },
-          }
-        : { initial: false })}
+      initial={justRestored ? { x: 64, y: -18, scale: 0.52, opacity: 0, rotate: 13 } : false}
+      animate={justRestored ? { x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 } : undefined}
+      transition={justRestored ? { type: 'spring', stiffness: 390, damping: 28 } : undefined}
     >
       <TrailParticles active={showTrail} cor={membro.cor} />
       <motion.div
@@ -608,10 +612,14 @@ function MembroLinha({
                   'linear-gradient(135deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.012) 100%)',
               }
         }
-        whileHover={{
-          background: `linear-gradient(135deg, ${membro.cor}0d 0%, rgba(255,255,255,0.018) 100%)`,
-          borderColor: `${membro.cor}35`,
-        }}
+        whileHover={
+          !deleting
+            ? {
+                background: `linear-gradient(135deg, ${membro.cor}0d 0%, rgba(255,255,255,0.018) 100%)`,
+                borderColor: `${membro.cor}35`,
+              }
+            : {}
+        }
         transition={{ duration: 0.2 }}
       >
         <CardWatermark simbolo={membro.simbolo} cor={membro.cor} />
@@ -653,8 +661,8 @@ function MembroLinha({
         <motion.button
           onClick={handleRemover}
           disabled={deleting}
-          whileHover={{ scale: 1.15, rotate: -8 }}
-          whileTap={{ scale: 0.82 }}
+          whileHover={!deleting ? { scale: 1.15, rotate: -8 } : {}}
+          whileTap={!deleting ? { scale: 0.82 } : {}}
           className="relative flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl text-white/18 hover:text-red-400 hover:bg-red-500/12 transition-all duration-150 disabled:opacity-0"
           title="Remover membro"
         >
@@ -674,7 +682,9 @@ function MembroLinha({
       </motion.div>
     </motion.div>
   );
-}
+});
+
+MembroLinha.displayName = 'MembroLinha';
 
 /* ────────────────────────────────────────────────
    Componente principal
@@ -790,7 +800,7 @@ export default function EquipeDeElite() {
 
         {/* Lista de membros ativos */}
         <div className="space-y-2.5">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="wait">
             {membros.length === 0 ? (
               <motion.div
                 key="vazio"
@@ -800,7 +810,6 @@ export default function EquipeDeElite() {
                 transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                 className="flex flex-col items-center py-12 text-center"
               >
-                {/* SVG trash icon — decorative, large */}
                 <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -889,7 +898,6 @@ export default function EquipeDeElite() {
                   para restaurar
                 </p>
 
-                {/* Restaurar todos de uma vez */}
                 <AnimatePresence>
                   {removidos.length > 0 && (
                     <BotaoRestaurarTodos count={removidos.length} onClick={handleRestaurarTodos} />
@@ -899,7 +907,7 @@ export default function EquipeDeElite() {
             ) : (
               membros.map(m => (
                 <MembroLinha
-                  key={m.id}
+                  key={`membro-${m.id}`}
                   membro={m}
                   trashRef={trashRef}
                   onRemover={handleRemover}
@@ -924,7 +932,7 @@ export default function EquipeDeElite() {
                 ))}
               </div>
               <span className="text-[10px] text-white/28">
-                © {new Date().getFullYear()} · Equipe de Elite
+                © {new Date().getFullYear()} · Ricardo Willian
               </span>
             </div>
             <div className="flex items-center gap-2 text-[9px] text-white/16">
