@@ -1,13 +1,13 @@
-import { useState, useRef, useCallback } from 'react';
-import type { ReactElement } from 'react';
-import { motion, AnimatePresence, useAnimate } from 'framer-motion';
 import {
   GojoAvatar,
-  LuffyAvatar,
-  NarutoAvatar,
   KilluaAvatar,
+  LuffyAvatar,
   MikasaAvatar,
+  NarutoAvatar,
 } from '@/components/CharacterAvatars';
+import { AnimatePresence, motion, useAnimate } from 'framer-motion';
+import type { ReactElement } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 interface Membro {
   id: number;
@@ -97,8 +97,6 @@ const STATUS_CONFIG = {
   ocupado: { cor: '#F87171', label: 'Ocupado', pulso: false },
 };
 
-const CORES_PERSONAGENS = ['#818CF8', '#F87171', '#FB923C', '#38BDF8', '#A78BFA'];
-
 function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number }) {
   return (
     <svg
@@ -122,8 +120,11 @@ function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number })
 function CardWatermark({ simbolo, cor }: { simbolo: string; cor: string }) {
   if (simbolo === 'ramen') {
     return (
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none select-none opacity-[0.045]">
-        <UzumakiSpiral cor={cor} tamanho={72} />
+      <div
+        className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none select-none leading-none"
+        style={{ fontSize: '4.2rem', opacity: 0.08, userSelect: 'none' }}
+      >
+        🍜
       </div>
     );
   }
@@ -358,32 +359,21 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
       transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0.2 }}
       className="relative mt-5"
     >
-      {/* Rainbow top bar */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
-        style={{
-          background: 'linear-gradient(90deg, #818CF8, #F87171, #FB923C, #38BDF8, #A78BFA)',
-        }}
-      />
       <AnimatePresence>
         {burst &&
           [...Array(6)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute w-1.5 h-1.5 rounded-full pointer-events-none z-20"
-              style={{
-                backgroundColor: CORES_PERSONAGENS[i % CORES_PERSONAGENS.length],
-                left: '50%',
-                top: '50%',
-              }}
+              style={{ backgroundColor: 'rgba(255,255,255,0.55)', left: '50%', top: '50%' }}
               initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
               animate={{
-                x: Math.cos((i / 6) * Math.PI * 2) * 52,
-                y: Math.sin((i / 6) * Math.PI * 2) * 36,
+                x: Math.cos((i / 6) * Math.PI * 2) * 48,
+                y: Math.sin((i / 6) * Math.PI * 2) * 32,
                 opacity: 0,
                 scale: 0,
               }}
-              transition={{ duration: 0.55, delay: i * 0.035, ease: 'easeOut' }}
+              transition={{ duration: 0.5, delay: i * 0.03, ease: 'easeOut' }}
             />
           ))}
       </AnimatePresence>
@@ -393,24 +383,34 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
         whileTap={{ scale: 0.96 }}
         className="relative w-full px-8 py-3.5 rounded-2xl font-semibold text-[13px] overflow-hidden cursor-pointer"
         style={{
-          background:
-            'linear-gradient(135deg, #818CF822 0%, #F8717122 25%, #FB923C22 50%, #38BDF822 75%, #A78BFA22 100%)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          color: 'rgba(255,255,255,0.85)',
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.09)',
+          color: 'rgba(255,255,255,0.65)',
         }}
       >
-        {/* Shimmer sweep */}
         <motion.div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%)',
+              'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%)',
           }}
           animate={{ x: ['-120%', '220%'] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2.2 }}
         />
         <span className="relative flex items-center justify-center gap-2.5">
-          <span className="text-[15px]">↩</span>
+          <svg
+            viewBox="0 0 18 18"
+            fill="none"
+            className="w-[15px] h-[15px] flex-shrink-0 opacity-70"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2.5 9a6.5 6.5 0 1 0 1.4-4" />
+            <path d="M2.5 4.5v4.5h4.5" />
+            <path d="M7 12.5h4M7 15h2.5" />
+          </svg>
           <span>Restaurar todos</span>
           <motion.span
             key={count}
@@ -418,9 +418,9 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
             animate={{ scale: 1, opacity: 1 }}
             className="px-1.5 py-0.5 rounded-md text-[11px] font-bold"
             style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              color: 'rgba(255,255,255,0.7)',
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.5)',
             }}
           >
             {count}
@@ -573,16 +573,26 @@ function MembroLinha({
           </div>
           <p className="text-[9px] text-white/22 italic mt-0.5">{membro.personagem}</p>
         </div>
-        {/* Delete button — emoji icon (pre-SVG) */}
         <motion.button
           onClick={handleRemover}
           disabled={deleting}
           whileHover={{ scale: 1.15, rotate: -8 }}
           whileTap={{ scale: 0.82 }}
-          className="relative flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl text-white/25 hover:text-red-400 hover:bg-red-500/12 transition-all duration-150 disabled:opacity-0"
+          className="relative flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl text-white/18 hover:text-red-400 hover:bg-red-500/12 transition-all duration-150 disabled:opacity-0"
           title="Remover membro"
         >
-          <span className="text-[15px]">🗑️</span>
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            className="w-4 h-4"
+            stroke="currentColor"
+            strokeWidth={1.6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2.5 5h15M6.667 5V3.333a1.667 1.667 0 0 1 1.666-1.666h3.334a1.667 1.667 0 0 1 1.666 1.666V5m2.5 0-.833 11.667a1.667 1.667 0 0 1-1.667 1.666H6.667A1.667 1.667 0 0 1 5 16.667L4.167 5" />
+            <path d="M8.333 9.167v5M11.667 9.167v5" />
+          </svg>
         </motion.button>
       </motion.div>
     </motion.div>
@@ -746,8 +756,24 @@ export default function EquipeDeElite() {
                   </svg>
                 </motion.div>
                 <p className="text-white/45 font-semibold text-sm mb-1.5">Todos removidos</p>
-                <p className="text-white/22 text-xs">
-                  Use o botão <span className="font-mono text-white/40 mx-1">↩</span> para restaurar
+                <p className="text-white/22 text-xs flex items-center gap-1.5">
+                  Use o botão
+                  <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-white/[0.07] border border-white/[0.09]">
+                    <svg
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      className="w-2.5 h-2.5"
+                      stroke="currentColor"
+                      strokeWidth={1.8}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                    >
+                      <path d="M1.5 6a4.5 4.5 0 1 0 1-2.8" />
+                      <path d="M1.5 3v3h3" />
+                    </svg>
+                  </span>
+                  para restaurar
                 </p>
                 <AnimatePresence>
                   {removidos.length > 0 && (
