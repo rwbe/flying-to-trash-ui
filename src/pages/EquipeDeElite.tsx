@@ -5,6 +5,7 @@ import {
   MikasaAvatar,
   NarutoAvatar,
 } from '@/components/CharacterAvatars';
+import { playRestoreChime, playRestoreSound, playTrashSound } from '@/lib/sounds';
 import { AnimatePresence, motion, useAnimate } from 'framer-motion';
 import type { ReactElement } from 'react';
 import { useCallback, useRef, useState } from 'react';
@@ -97,6 +98,9 @@ const STATUS_CONFIG = {
   ocupado: { cor: '#F87171', label: 'Ocupado', pulso: false },
 };
 
+/* ────────────────────────────────────────────────
+   Espiral Uzumaki — símbolo do clã
+──────────────────────────────────────────────── */
 function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number }) {
   return (
     <svg
@@ -107,7 +111,18 @@ function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number })
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M50 50 m0,-36 a36,36 0 1,1 -0.01,0 m0.01,-8 a44,44 0 1,0 0.01,0 m-0.01,16 a28,28 0 1,1 -0.01,0 m0.01,-8 a20,20 0 1,0 0.01,0 m-0.01,8 a12,12 0 1,1 -0.01,0 m0.01,0 l0,1"
+        d="M50 50
+           m0,-36
+           a36,36 0 1,1 -0.01,0
+           m0.01,-8
+           a44,44 0 1,0 0.01,0
+           m-0.01,16
+           a28,28 0 1,1 -0.01,0
+           m0.01,-8
+           a20,20 0 1,0 0.01,0
+           m-0.01,8
+           a12,12 0 1,1 -0.01,0
+           m0.01,0 l0,1"
         stroke={cor}
         strokeWidth="5.5"
         strokeLinecap="round"
@@ -117,6 +132,9 @@ function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number })
   );
 }
 
+/* ────────────────────────────────────────────────
+   Marca d'água do personagem no card
+──────────────────────────────────────────────── */
 function CardWatermark({ simbolo, cor }: { simbolo: string; cor: string }) {
   if (simbolo === 'ramen') {
     return (
@@ -144,6 +162,9 @@ function CardWatermark({ simbolo, cor }: { simbolo: string; cor: string }) {
   );
 }
 
+/* ────────────────────────────────────────────────
+   Lixeira animada
+──────────────────────────────────────────────── */
 function LixeiraAnimada({
   isOpen,
   count,
@@ -172,6 +193,7 @@ function LixeiraAnimada({
             />
           )}
         </AnimatePresence>
+
         <svg viewBox="0 0 56 56" className="w-full h-full relative z-10" fill="none">
           <motion.rect
             x="10"
@@ -226,6 +248,7 @@ function LixeiraAnimada({
             />
           </motion.g>
         </svg>
+
         <AnimatePresence>
           {count > 0 && (
             <motion.div
@@ -250,6 +273,9 @@ function LixeiraAnimada({
   );
 }
 
+/* ────────────────────────────────────────────────
+   Botão Restaurar — ícone ao lado da lixeira
+──────────────────────────────────────────────── */
 function BotaoRestaurar({
   removidos,
   onRestaurar,
@@ -284,6 +310,7 @@ function BotaoRestaurar({
           />
         )}
       </AnimatePresence>
+
       <motion.button
         onClick={handle}
         disabled={disabled}
@@ -317,6 +344,7 @@ function BotaoRestaurar({
           </svg>
         </motion.div>
       </motion.button>
+
       <AnimatePresence>
         {count > 0 && (
           <motion.div
@@ -342,6 +370,9 @@ function BotaoRestaurar({
   );
 }
 
+/* ────────────────────────────────────────────────
+   Botão Restaurar Todos — estado vazio
+──────────────────────────────────────────────── */
 function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () => void }) {
   const [burst, setBurst] = useState(false);
 
@@ -359,13 +390,18 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
       transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0.2 }}
       className="relative mt-5"
     >
+      {/* Subtle particle burst on click — neutral white */}
       <AnimatePresence>
         {burst &&
           [...Array(6)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute w-1.5 h-1.5 rounded-full pointer-events-none z-20"
-              style={{ backgroundColor: 'rgba(255,255,255,0.55)', left: '50%', top: '50%' }}
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.55)',
+                left: '50%',
+                top: '50%',
+              }}
               initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
               animate={{
                 x: Math.cos((i / 6) * Math.PI * 2) * 48,
@@ -377,6 +413,7 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
             />
           ))}
       </AnimatePresence>
+
       <motion.button
         onClick={handle}
         whileHover={{ scale: 1.03, y: -1 }}
@@ -388,6 +425,7 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
           color: 'rgba(255,255,255,0.65)',
         }}
       >
+        {/* Shimmer sweep */}
         <motion.div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -397,7 +435,9 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
           animate={{ x: ['-120%', '220%'] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2.2 }}
         />
+
         <span className="relative flex items-center justify-center gap-2.5">
+          {/* SVG restore-all icon */}
           <svg
             viewBox="0 0 18 18"
             fill="none"
@@ -431,6 +471,9 @@ function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () =>
   );
 }
 
+/* ────────────────────────────────────────────────
+   Avatar com anel giratório + ilustração SVG
+──────────────────────────────────────────────── */
 function AvatarCard({ membro }: { membro: Membro }) {
   const { Avatar } = membro;
   return (
@@ -466,6 +509,9 @@ function AvatarCard({ membro }: { membro: Membro }) {
   );
 }
 
+/* ────────────────────────────────────────────────
+   Partículas de trilha ao deletar
+──────────────────────────────────────────────── */
 function TrailParticles({ active, cor }: { active: boolean; cor: string }) {
   return (
     <AnimatePresence>
@@ -485,14 +531,19 @@ function TrailParticles({ active, cor }: { active: boolean; cor: string }) {
   );
 }
 
+/* ────────────────────────────────────────────────
+   Linha de membro ativo com fly-to-trash
+──────────────────────────────────────────────── */
 function MembroLinha({
   membro,
   trashRef,
   onRemover,
+  justRestored = false,
 }: {
   membro: Membro;
-  trashRef: React.RefObject<HTMLDivElement | null>;
+  trashRef: React.RefObject<HTMLDivElement>;
   onRemover: (id: number) => void;
+  justRestored?: boolean;
 }) {
   const [rowRef, animate] = useAnimate<HTMLDivElement>();
   const [deleting, setDeleting] = useState(false);
@@ -502,11 +553,15 @@ function MembroLinha({
     if (deleting || !trashRef.current || !rowRef.current) return;
     setDeleting(true);
     setShowTrail(true);
+    playTrashSound();
+
     const rowRect = rowRef.current.getBoundingClientRect();
     const trashRect = trashRef.current.getBoundingClientRect();
     const dx = trashRect.left + trashRect.width / 2 - (rowRect.left + rowRect.width / 2);
     const dy = trashRect.top + trashRect.height / 2 - (rowRect.top + rowRect.height / 2);
+
     setTimeout(() => setShowTrail(false), 450);
+
     await animate(
       rowRef.current,
       {
@@ -517,16 +572,34 @@ function MembroLinha({
         opacity: [1, 1, 0.65, 0],
         filter: ['blur(0px)', 'blur(0px)', 'blur(1px)', 'blur(8px)'],
       },
-      { duration: 0.62, ease: [0.25, 0.46, 0.45, 0.94], times: [0, 0.2, 0.65, 1] }
+      {
+        duration: 0.62,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        times: [0, 0.2, 0.65, 1],
+      }
     );
+
     onRemover(membro.id);
   }, [deleting, trashRef, rowRef, animate, onRemover, membro.id]);
 
   return (
-    <motion.div layout ref={rowRef} className="relative">
+    <motion.div
+      layout
+      ref={rowRef}
+      className="relative"
+      {...(justRestored
+        ? {
+            initial: { x: 64, y: -18, scale: 0.52, opacity: 0, rotate: 13 },
+            animate: { x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 },
+            transition: { type: 'spring', stiffness: 390, damping: 28 },
+          }
+        : { initial: false })}
+    >
       <TrailParticles active={showTrail} cor={membro.cor} />
       <motion.div
-        className={`group flex items-center gap-4 px-5 py-4 rounded-2xl border transition-colors duration-200 cursor-default relative overflow-hidden ${deleting ? 'border-red-500/20' : 'border-white/[0.07]'}`}
+        className={`group flex items-center gap-4 px-5 py-4 rounded-2xl border transition-colors duration-200 cursor-default relative overflow-hidden ${
+          deleting ? 'border-red-500/20' : 'border-white/[0.07]'
+        }`}
         style={
           deleting
             ? { background: 'rgba(239,68,68,0.04)' }
@@ -542,11 +615,14 @@ function MembroLinha({
         transition={{ duration: 0.2 }}
       >
         <CardWatermark simbolo={membro.simbolo} cor={membro.cor} />
+
         <div
           className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full opacity-75"
           style={{ backgroundColor: membro.cor }}
         />
+
         <AvatarCard membro={membro} />
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-sm font-bold text-white/92 truncate">{membro.nome}</span>
@@ -573,6 +649,7 @@ function MembroLinha({
           </div>
           <p className="text-[9px] text-white/22 italic mt-0.5">{membro.personagem}</p>
         </div>
+
         <motion.button
           onClick={handleRemover}
           disabled={deleting}
@@ -599,10 +676,14 @@ function MembroLinha({
   );
 }
 
+/* ────────────────────────────────────────────────
+   Componente principal
+──────────────────────────────────────────────── */
 export default function EquipeDeElite() {
   const [membros, setMembros] = useState<Membro[]>(MEMBROS_INICIAIS);
   const [removidos, setRemovidos] = useState<Membro[]>([]);
   const [trashOpen, setTrashOpen] = useState(false);
+  const [restoringIds, setRestoringIds] = useState<Set<number>>(new Set());
   const trashRef = useRef<HTMLDivElement>(null);
   const pendingRef = useRef(0);
 
@@ -621,27 +702,53 @@ export default function EquipeDeElite() {
   const handleRestaurar = useCallback((id: number) => {
     const membro = MEMBROS_INICIAIS.find(m => m.id === id);
     if (!membro) return;
+    playRestoreSound();
+    setRestoringIds(prev => new Set([...prev, id]));
     setRemovidos(prev => prev.filter(m => m.id !== id));
     setMembros(prev => {
       const originalOrder = MEMBROS_INICIAIS.map(m => m.id);
       const newList = [...prev, membro];
       return newList.sort((a, b) => originalOrder.indexOf(a.id) - originalOrder.indexOf(b.id));
     });
+    setTimeout(() => {
+      setRestoringIds(prev => {
+        const n = new Set(prev);
+        n.delete(id);
+        return n;
+      });
+    }, 900);
   }, []);
 
   const handleRestaurarTodos = useCallback(() => {
-    setMembros(prev => {
-      const originalOrder = MEMBROS_INICIAIS.map(m => m.id);
-      const newList = [...prev, ...removidos];
-      return newList.sort((a, b) => originalOrder.indexOf(a.id) - originalOrder.indexOf(b.id));
-    });
+    const originalOrder = MEMBROS_INICIAIS.map(m => m.id);
+    const ordenados = [...removidos].sort(
+      (a, b) => originalOrder.indexOf(a.id) - originalOrder.indexOf(b.id)
+    );
     setRemovidos([]);
+    ordenados.forEach((membro, i) => {
+      setTimeout(() => {
+        playRestoreChime(i);
+        setRestoringIds(prev => new Set([...prev, membro.id]));
+        setMembros(prev => {
+          const newList = [...prev, membro];
+          return newList.sort((a, b) => originalOrder.indexOf(a.id) - originalOrder.indexOf(b.id));
+        });
+        setTimeout(() => {
+          setRestoringIds(prev => {
+            const n = new Set(prev);
+            n.delete(membro.id);
+            return n;
+          });
+        }, 900);
+      }, i * 145);
+    });
   }, [removidos]);
 
   const totalRemovidos = removidos.length;
 
   return (
     <div className="min-h-screen bg-[#0e0e10] flex items-center justify-center p-6">
+      {/* Grain texture overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.022]"
         style={{
@@ -649,7 +756,9 @@ export default function EquipeDeElite() {
           backgroundSize: '200px 200px',
         }}
       />
+
       <div className="w-full max-w-lg relative z-10">
+        {/* Cabeçalho */}
         <div className="flex items-start justify-between mb-7">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
@@ -671,12 +780,15 @@ export default function EquipeDeElite() {
               {membros.length} membro{membros.length !== 1 ? 's' : ''} ativos · Operações Especiais
             </p>
           </div>
+
+          {/* Ações: Restaurar + Lixeira */}
           <div className="flex items-center gap-2.5">
             <BotaoRestaurar removidos={removidos} onRestaurar={handleRestaurar} />
             <LixeiraAnimada isOpen={trashOpen} count={totalRemovidos} innerRef={trashRef} />
           </div>
         </div>
 
+        {/* Lista de membros ativos */}
         <div className="space-y-2.5">
           <AnimatePresence mode="popLayout">
             {membros.length === 0 ? (
@@ -688,6 +800,7 @@ export default function EquipeDeElite() {
                 transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                 className="flex flex-col items-center py-12 text-center"
               >
+                {/* SVG trash icon — decorative, large */}
                 <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -775,6 +888,8 @@ export default function EquipeDeElite() {
                   </span>
                   para restaurar
                 </p>
+
+                {/* Restaurar todos de uma vez */}
                 <AnimatePresence>
                   {removidos.length > 0 && (
                     <BotaoRestaurarTodos count={removidos.length} onClick={handleRestaurarTodos} />
@@ -783,12 +898,19 @@ export default function EquipeDeElite() {
               </motion.div>
             ) : (
               membros.map(m => (
-                <MembroLinha key={m.id} membro={m} trashRef={trashRef} onRemover={handleRemover} />
+                <MembroLinha
+                  key={m.id}
+                  membro={m}
+                  trashRef={trashRef}
+                  onRemover={handleRemover}
+                  justRestored={restoringIds.has(m.id)}
+                />
               ))
             )}
           </AnimatePresence>
         </div>
 
+        {/* Rodapé */}
         {membros.length > 0 && (
           <div className="mt-6 pt-4 border-t border-white/[0.055] flex items-center justify-between">
             <div className="flex items-center gap-2">
