@@ -59,8 +59,8 @@ const MEMBROS_INICIAIS: Membro[] = [
     status: 'ocupado',
     cor: '#FB923C',
     corSecundaria: '#7C2D12',
-    emoji: '🍥',
-    simbolo: 'uzumaki',
+    emoji: '🍜',
+    simbolo: 'ramen',
     Avatar: NarutoAvatar,
   },
   {
@@ -97,9 +97,8 @@ const STATUS_CONFIG = {
   ocupado: { cor: '#F87171', label: 'Ocupado', pulso: false },
 };
 
-/* ────────────────────────────────────────────────
-   Espiral Uzumaki — símbolo do clã
-──────────────────────────────────────────────── */
+const CORES_PERSONAGENS = ['#818CF8', '#F87171', '#FB923C', '#38BDF8', '#A78BFA'];
+
 function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number }) {
   return (
     <svg
@@ -110,18 +109,7 @@ function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number })
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M50 50
-           m0,-36
-           a36,36 0 1,1 -0.01,0
-           m0.01,-8
-           a44,44 0 1,0 0.01,0
-           m-0.01,16
-           a28,28 0 1,1 -0.01,0
-           m0.01,-8
-           a20,20 0 1,0 0.01,0
-           m-0.01,8
-           a12,12 0 1,1 -0.01,0
-           m0.01,0 l0,1"
+        d="M50 50 m0,-36 a36,36 0 1,1 -0.01,0 m0.01,-8 a44,44 0 1,0 0.01,0 m-0.01,16 a28,28 0 1,1 -0.01,0 m0.01,-8 a20,20 0 1,0 0.01,0 m-0.01,8 a12,12 0 1,1 -0.01,0 m0.01,0 l0,1"
         stroke={cor}
         strokeWidth="5.5"
         strokeLinecap="round"
@@ -131,17 +119,11 @@ function UzumakiSpiral({ cor, tamanho = 72 }: { cor: string; tamanho?: number })
   );
 }
 
-/* ────────────────────────────────────────────────
-   Marca d'água do personagem no card
-──────────────────────────────────────────────── */
 function CardWatermark({ simbolo, cor }: { simbolo: string; cor: string }) {
-  if (simbolo === 'uzumaki') {
+  if (simbolo === 'ramen') {
     return (
-      <div
-        className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none select-none"
-        style={{ opacity: 0.055 }}
-      >
-        <UzumakiSpiral cor={cor} tamanho={68} />
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none select-none opacity-[0.045]">
+        <UzumakiSpiral cor={cor} tamanho={72} />
       </div>
     );
   }
@@ -161,9 +143,6 @@ function CardWatermark({ simbolo, cor }: { simbolo: string; cor: string }) {
   );
 }
 
-/* ────────────────────────────────────────────────
-   Lixeira animada
-──────────────────────────────────────────────── */
 function LixeiraAnimada({
   isOpen,
   count,
@@ -192,7 +171,6 @@ function LixeiraAnimada({
             />
           )}
         </AnimatePresence>
-
         <svg viewBox="0 0 56 56" className="w-full h-full relative z-10" fill="none">
           <motion.rect
             x="10"
@@ -247,7 +225,6 @@ function LixeiraAnimada({
             />
           </motion.g>
         </svg>
-
         <AnimatePresence>
           {count > 0 && (
             <motion.div
@@ -272,9 +249,6 @@ function LixeiraAnimada({
   );
 }
 
-/* ────────────────────────────────────────────────
-   Botão Restaurar — ícone ao lado da lixeira
-──────────────────────────────────────────────── */
 function BotaoRestaurar({
   removidos,
   onRestaurar,
@@ -297,7 +271,6 @@ function BotaoRestaurar({
 
   return (
     <div className="relative flex items-center justify-center">
-      {/* Pulse ring when active */}
       <AnimatePresence>
         {!disabled && (
           <motion.div
@@ -310,7 +283,6 @@ function BotaoRestaurar({
           />
         )}
       </AnimatePresence>
-
       <motion.button
         onClick={handle}
         disabled={disabled}
@@ -344,8 +316,6 @@ function BotaoRestaurar({
           </svg>
         </motion.div>
       </motion.button>
-
-      {/* Count badge */}
       <AnimatePresence>
         {count > 0 && (
           <motion.div
@@ -371,9 +341,96 @@ function BotaoRestaurar({
   );
 }
 
-/* ────────────────────────────────────────────────
-   Avatar com anel giratório + ilustração SVG
-──────────────────────────────────────────────── */
+function BotaoRestaurarTodos({ count, onClick }: { count: number; onClick: () => void }) {
+  const [burst, setBurst] = useState(false);
+
+  const handle = () => {
+    setBurst(true);
+    onClick();
+    setTimeout(() => setBurst(false), 700);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 22, scale: 0.86 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 12, scale: 0.92 }}
+      transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0.2 }}
+      className="relative mt-5"
+    >
+      {/* Rainbow top bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
+        style={{
+          background: 'linear-gradient(90deg, #818CF8, #F87171, #FB923C, #38BDF8, #A78BFA)',
+        }}
+      />
+      <AnimatePresence>
+        {burst &&
+          [...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 h-1.5 rounded-full pointer-events-none z-20"
+              style={{
+                backgroundColor: CORES_PERSONAGENS[i % CORES_PERSONAGENS.length],
+                left: '50%',
+                top: '50%',
+              }}
+              initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+              animate={{
+                x: Math.cos((i / 6) * Math.PI * 2) * 52,
+                y: Math.sin((i / 6) * Math.PI * 2) * 36,
+                opacity: 0,
+                scale: 0,
+              }}
+              transition={{ duration: 0.55, delay: i * 0.035, ease: 'easeOut' }}
+            />
+          ))}
+      </AnimatePresence>
+      <motion.button
+        onClick={handle}
+        whileHover={{ scale: 1.03, y: -1 }}
+        whileTap={{ scale: 0.96 }}
+        className="relative w-full px-8 py-3.5 rounded-2xl font-semibold text-[13px] overflow-hidden cursor-pointer"
+        style={{
+          background:
+            'linear-gradient(135deg, #818CF822 0%, #F8717122 25%, #FB923C22 50%, #38BDF822 75%, #A78BFA22 100%)',
+          border: '1px solid rgba(255,255,255,0.12)',
+          color: 'rgba(255,255,255,0.85)',
+        }}
+      >
+        {/* Shimmer sweep */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%)',
+          }}
+          animate={{ x: ['-120%', '220%'] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2.2 }}
+        />
+        <span className="relative flex items-center justify-center gap-2.5">
+          <span className="text-[15px]">↩</span>
+          <span>Restaurar todos</span>
+          <motion.span
+            key={count}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="px-1.5 py-0.5 rounded-md text-[11px] font-bold"
+            style={{
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: 'rgba(255,255,255,0.7)',
+            }}
+          >
+            {count}
+          </motion.span>
+        </span>
+      </motion.button>
+    </motion.div>
+  );
+}
+
 function AvatarCard({ membro }: { membro: Membro }) {
   const { Avatar } = membro;
   return (
@@ -399,8 +456,8 @@ function AvatarCard({ membro }: { membro: Membro }) {
             <motion.div
               className="absolute inset-0 rounded-full"
               style={{ backgroundColor: STATUS_CONFIG[membro.status].cor }}
-              animate={{ scale: [1, 2.4], opacity: [0.6, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut' }}
+              animate={{ scale: [1, 1.95], opacity: [0.5, 0] }}
+              transition={{ duration: 2.3, repeat: Infinity, ease: 'easeOut', repeatDelay: 0.7 }}
             />
           )}
         </div>
@@ -409,9 +466,6 @@ function AvatarCard({ membro }: { membro: Membro }) {
   );
 }
 
-/* ────────────────────────────────────────────────
-   Partículas de trilha ao deletar
-──────────────────────────────────────────────── */
 function TrailParticles({ active, cor }: { active: boolean; cor: string }) {
   return (
     <AnimatePresence>
@@ -431,9 +485,6 @@ function TrailParticles({ active, cor }: { active: boolean; cor: string }) {
   );
 }
 
-/* ────────────────────────────────────────────────
-   Linha de membro ativo com fly-to-trash
-──────────────────────────────────────────────── */
 function MembroLinha({
   membro,
   trashRef,
@@ -451,14 +502,11 @@ function MembroLinha({
     if (deleting || !trashRef.current || !rowRef.current) return;
     setDeleting(true);
     setShowTrail(true);
-
     const rowRect = rowRef.current.getBoundingClientRect();
     const trashRect = trashRef.current.getBoundingClientRect();
     const dx = trashRect.left + trashRect.width / 2 - (rowRect.left + rowRect.width / 2);
     const dy = trashRect.top + trashRect.height / 2 - (rowRect.top + rowRect.height / 2);
-
     setTimeout(() => setShowTrail(false), 450);
-
     await animate(
       rowRef.current,
       {
@@ -469,13 +517,8 @@ function MembroLinha({
         opacity: [1, 1, 0.65, 0],
         filter: ['blur(0px)', 'blur(0px)', 'blur(1px)', 'blur(8px)'],
       },
-      {
-        duration: 0.62,
-        ease: [0.25, 0.46, 0.45, 0.94],
-        times: [0, 0.2, 0.65, 1],
-      }
+      { duration: 0.62, ease: [0.25, 0.46, 0.45, 0.94], times: [0, 0.2, 0.65, 1] }
     );
-
     onRemover(membro.id);
   }, [deleting, trashRef, rowRef, animate, onRemover, membro.id]);
 
@@ -483,9 +526,7 @@ function MembroLinha({
     <motion.div layout ref={rowRef} className="relative">
       <TrailParticles active={showTrail} cor={membro.cor} />
       <motion.div
-        className={`group flex items-center gap-4 px-5 py-4 rounded-2xl border transition-colors duration-200 cursor-default relative overflow-hidden ${
-          deleting ? 'border-red-500/20' : 'border-white/[0.07]'
-        }`}
+        className={`group flex items-center gap-4 px-5 py-4 rounded-2xl border transition-colors duration-200 cursor-default relative overflow-hidden ${deleting ? 'border-red-500/20' : 'border-white/[0.07]'}`}
         style={
           deleting
             ? { background: 'rgba(239,68,68,0.04)' }
@@ -500,17 +541,12 @@ function MembroLinha({
         }}
         transition={{ duration: 0.2 }}
       >
-        {/* Marca d'água do personagem */}
         <CardWatermark simbolo={membro.simbolo} cor={membro.cor} />
-
-        {/* Barra lateral colorida */}
         <div
           className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full opacity-75"
           style={{ backgroundColor: membro.cor }}
         />
-
         <AvatarCard membro={membro} />
-
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-sm font-bold text-white/92 truncate">{membro.nome}</span>
@@ -537,37 +573,22 @@ function MembroLinha({
           </div>
           <p className="text-[9px] text-white/22 italic mt-0.5">{membro.personagem}</p>
         </div>
-
-        {/* Botão deletar — lixeira */}
+        {/* Delete button — emoji icon (pre-SVG) */}
         <motion.button
           onClick={handleRemover}
           disabled={deleting}
           whileHover={{ scale: 1.15, rotate: -8 }}
           whileTap={{ scale: 0.82 }}
-          className="relative flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl text-white/18 hover:text-red-400 hover:bg-red-500/12 transition-all duration-150 disabled:opacity-0"
+          className="relative flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl text-white/25 hover:text-red-400 hover:bg-red-500/12 transition-all duration-150 disabled:opacity-0"
           title="Remover membro"
         >
-          <svg
-            viewBox="0 0 20 20"
-            fill="none"
-            className="w-4 h-4"
-            stroke="currentColor"
-            strokeWidth={1.6}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M2.5 5h15M6.667 5V3.333a1.667 1.667 0 0 1 1.666-1.666h3.334a1.667 1.667 0 0 1 1.666 1.666V5m2.5 0-.833 11.667a1.667 1.667 0 0 1-1.667 1.666H6.667A1.667 1.667 0 0 1 5 16.667L4.167 5" />
-            <path d="M8.333 9.167v5M11.667 9.167v5" />
-          </svg>
+          <span className="text-[15px]">🗑️</span>
         </motion.button>
       </motion.div>
     </motion.div>
   );
 }
 
-/* ────────────────────────────────────────────────
-   Componente principal
-──────────────────────────────────────────────── */
 export default function EquipeDeElite() {
   const [membros, setMembros] = useState<Membro[]>(MEMBROS_INICIAIS);
   const [removidos, setRemovidos] = useState<Membro[]>([]);
@@ -598,11 +619,19 @@ export default function EquipeDeElite() {
     });
   }, []);
 
+  const handleRestaurarTodos = useCallback(() => {
+    setMembros(prev => {
+      const originalOrder = MEMBROS_INICIAIS.map(m => m.id);
+      const newList = [...prev, ...removidos];
+      return newList.sort((a, b) => originalOrder.indexOf(a.id) - originalOrder.indexOf(b.id));
+    });
+    setRemovidos([]);
+  }, [removidos]);
+
   const totalRemovidos = removidos.length;
 
   return (
     <div className="min-h-screen bg-[#0e0e10] flex items-center justify-center p-6">
-      {/* Grain texture overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.022]"
         style={{
@@ -610,9 +639,7 @@ export default function EquipeDeElite() {
           backgroundSize: '200px 200px',
         }}
       />
-
       <div className="w-full max-w-lg relative z-10">
-        {/* Cabeçalho */}
         <div className="flex items-start justify-between mb-7">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
@@ -634,15 +661,12 @@ export default function EquipeDeElite() {
               {membros.length} membro{membros.length !== 1 ? 's' : ''} ativos · Operações Especiais
             </p>
           </div>
-
-          {/* Ações: Restaurar + Lixeira */}
           <div className="flex items-center gap-2.5">
             <BotaoRestaurar removidos={removidos} onRestaurar={handleRestaurar} />
             <LixeiraAnimada isOpen={trashOpen} count={totalRemovidos} innerRef={trashRef} />
           </div>
         </div>
 
-        {/* Lista de membros ativos */}
         <div className="space-y-2.5">
           <AnimatePresence mode="popLayout">
             {membros.length === 0 ? (
@@ -655,14 +679,81 @@ export default function EquipeDeElite() {
                 className="flex flex-col items-center py-12 text-center"
               >
                 <motion.div
-                  animate={{ y: [0, -10, 0], rotate: [0, -10, 10, 0] }}
+                  animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-                  className="text-5xl mb-4"
+                  className="mb-5"
                 >
-                  🗑️
+                  <svg
+                    viewBox="0 0 64 64"
+                    fill="none"
+                    className="w-14 h-14 opacity-30"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      x="10"
+                      y="22"
+                      width="44"
+                      height="36"
+                      rx="6"
+                      stroke="white"
+                      strokeWidth="2"
+                    />
+                    <line
+                      x1="22"
+                      y1="30"
+                      x2="22"
+                      y2="50"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="32"
+                      y1="30"
+                      x2="32"
+                      y2="50"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="42"
+                      y1="30"
+                      x2="42"
+                      y2="50"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <rect
+                      x="6"
+                      y="14"
+                      width="52"
+                      height="10"
+                      rx="4"
+                      stroke="white"
+                      strokeWidth="2"
+                    />
+                    <rect
+                      x="22"
+                      y="6"
+                      width="20"
+                      height="9"
+                      rx="4"
+                      stroke="white"
+                      strokeWidth="2"
+                    />
+                  </svg>
                 </motion.div>
-                <p className="text-white/45 font-semibold text-sm mb-1">Todos removidos</p>
-                <p className="text-white/22 text-xs">Use o botão ↩ para restaurar</p>
+                <p className="text-white/45 font-semibold text-sm mb-1.5">Todos removidos</p>
+                <p className="text-white/22 text-xs">
+                  Use o botão <span className="font-mono text-white/40 mx-1">↩</span> para restaurar
+                </p>
+                <AnimatePresence>
+                  {removidos.length > 0 && (
+                    <BotaoRestaurarTodos count={removidos.length} onClick={handleRestaurarTodos} />
+                  )}
+                </AnimatePresence>
               </motion.div>
             ) : (
               membros.map(m => (
@@ -672,7 +763,6 @@ export default function EquipeDeElite() {
           </AnimatePresence>
         </div>
 
-        {/* Rodapé */}
         {membros.length > 0 && (
           <div className="mt-6 pt-4 border-t border-white/[0.055] flex items-center justify-between">
             <div className="flex items-center gap-2">
